@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.configure("2") do |config|
+  config.vm.define "graphite" do |graphite|
+    graphite.vm.box = "centos/7"
+    graphite.vm.hostname = "nginx-graphite"
+
+    # Forwarding port 80 for apache + graphite
+    graphite.vm.network :forwarded_port, guest: 80, host: 8000, auto_correct: true
+
+    # Forwarding port 3000 for grafana
+    graphite.vm.network :forwarded_port, guest: 3000, host: 3000
+
+    # Dropping all the conf files to be copied over
+    graphite.vm.provision "file", source: "files", destination: "/tmp/graphite-files"
+
+    # Calling bootstrap.sh for additional configurations
+    graphite.vm.provision "shell", path: "bootstrap.sh"
+
+    graphite.vm.provider "virtualbox" do |v|
+      v.memory = "1024"
+      v.cpus = "1"
+    end
+  end
+end
+
+# Graphite install reference: https://www.vultr.com/docs/how-to-install-and-configure-graphite-on-centos-7
